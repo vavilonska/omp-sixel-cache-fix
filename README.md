@@ -1,31 +1,37 @@
-# OMP SIXEL Cache Fix
+# OMP SIXEL Cache Fix / 图片缓存修复
 
-修复 Oh My Pi 在 SIXEL 终端中重复刷新图片时的缓存判定。无需替换 OMP 程序，支持随时关闭并恢复宿主原方法。MIT 许可证。
+## 中文
 
-## 安装
+修正 Oh My Pi 在 SIXEL 终端中重复刷新图片的缓存判定，无需替换 `omp.exe`。扩展直接接管 `ImageBudget.shouldTransmit()`；关闭时恢复宿主原方法，其他图像协议保留原行为。
 
-从 [Releases](https://github.com/vavilonska/omp-sixel-cache-fix/releases) 下载 ZIP 并解压，在目录中运行：
+从 [Releases](https://github.com/vavilonska/omp-sixel-cache-fix/releases) 下载 ZIP，完整解压后运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Install.ps1
-# 更新已有安装（保留备份）
+# 更新 / Update
 .\Install.ps1 -Action Update
-# 卸载
+# 卸载 / Uninstall
 .\Install.ps1 -Action Uninstall
 ```
 
-等当前 OMP 任务结束后重启 OMP，或执行 `/reload`。使用 `/image-cache-fix status` 检查状态，`/image-cache-fix off` 关闭，`/image-cache-fix on` 恢复。安装器面向 Windows；插件本身依赖 OMP 提供的共享模块，不需要另外 npm install。
+Windows 安装器将插件放入当前用户 `.omp\agent\extensions\omp-sixel-cache-fix`。更新先备份旧文件；遇到意外文件或改动时停止。无需额外 npm 依赖。
 
-## 兼容范围
+等当前任务结束后重启 OMP 或执行 `/reload`，然后 `/image-cache-fix status`。使用 `/image-cache-fix off` 关闭、`/image-cache-fix on` 恢复；下次加载默认启用。计数代表绕过检查次数，不等于节省编码次数。插件不修改图片显示设置。
 
-历史集成验证覆盖 OMP 18.1.18、18.1.19。插件没有版本白名单，始终按接口接管；这不代表任何未来版本均兼容。其他图像协议继续使用宿主行为。详见 [插件说明](plugin/README.md)。
+没有版本白名单，也不会因上游已修复而自动关闭。历史真实进程验证覆盖 OMP 18.1.18 / 18.1.19；未来接口变化仍可能导致不兼容。本次重新通过 8 项生命周期测试（42 项断言），未重测所有当前 OMP 版本。
 
-## 验证与开发
+开发验证：`bun test ./tests/cache-patch.test.ts`。详见 [插件说明](plugin/README.md)。代码 [MIT](LICENSE)，不包含个人会话、进程转储或诊断工作区。
 
-```powershell
-bun test ./tests/cache-patch.test.ts
-```
+## English
 
-发布时重新运行了 8 项补丁生命周期测试，包括协议隔离、重复加载、开关与关闭还原。历史真实 OMP 集成结果不等于已重测当前全部 OMP 版本。个人进程转储、会话和诊断工作目录不随源码发布。
+Corrects repeated-image cache decisions in Oh My Pi's SIXEL renderer without replacing `omp.exe`. The extension directly hooks `ImageBudget.shouldTransmit()`; disabling restores the host method, while other image protocols retain their original behavior.
 
-This is an independent community extension for Oh My Pi.
+Download and fully extract the ZIP from [Releases](https://github.com/vavilonska/omp-sixel-cache-fix/releases), then run the install/update/uninstall commands above.
+
+The Windows installer uses the current user's `.omp\agent\extensions\omp-sixel-cache-fix`. Updates back up existing files; unexpected files or modifications stop the operation. No additional npm installation is required.
+
+After the current task finishes, restart OMP or run `/reload`, then `/image-cache-fix status`. Toggle with `/image-cache-fix off` and `/image-cache-fix on`; each fresh load starts enabled. The counter measures bypassed checks, not avoided encodings. The plugin does not change image-display settings.
+
+There is no version allowlist or automatic disabling when upstream is fixed. Historical real-process integration covered OMP 18.1.18 / 18.1.19; future interface changes can still break compatibility. This release reran 8 lifecycle tests with 42 assertions, not integration tests for every current OMP version.
+
+Development check: `bun test ./tests/cache-patch.test.ts`. See [plugin details](plugin/README.md). Code is [MIT](LICENSE). Personal sessions, process dumps and diagnostic workspaces are excluded.

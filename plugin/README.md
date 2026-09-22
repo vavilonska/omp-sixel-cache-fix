@@ -1,48 +1,21 @@
-# OMP SIXEL 图片缓存修复 1.1.0
+# OMP SIXEL Cache Fix 1.1.0
 
-接管 OMP 的 SIXEL 图片缓存判断，修复 Windows Terminal 中图片重复解码、缩放和编码问题。以 OMP 扩展形式运行，无需重编译或替换 `omp.exe`。**不再检查或限制 OMP 版本号，也不根据上游是否已修复来决定启停。**
+## 中文
 
-## 使用
+此扩展通过 OMP 共享的 `@oh-my-pi/pi-tui` 接口，在 SIXEL 协议下使 `ImageBudget.shouldTransmit()` 返回 `false`，让原有 `Image` 缓存生效。尺寸、协议、预算变化和显式失效仍由宿主图片组件处理。Kitty、iTerm2 和纯文本行为保持不变。
 
-安装后，新启动的 OMP 会自动加载。在已经打开的 OMP 中，**等当前任务结束后**执行 `/reload`，然后执行：
+安装见 [项目说明](../README.md)。任务结束后重启 OMP 或 `/reload`，用 `/image-cache-fix status` 查看状态。`off` 恢复加载时的原方法；`on` 重新接管。会话关闭释放补丁，重复加载共享同一层补丁。绕过计数不等于编码节省数量，也不代表交互卡顿已人工验收。
 
-```text
-/image-cache-fix status
-```
+插件保留接口存在性和可替换性检查，但没有版本门禁；上游即使修复也不会自动关闭。历史集成验证覆盖 18.1.18 / 18.1.19，未来若接口移除或改名仍需适配。`/reload` 可能中断工作，务必等任务结束。插件不主动修改 OMP 图片显示设置。
 
-显示“已启用”和“当前协议 SIXEL”时，修复已应用于当前进程。状态中的计数是绕过传输检查的次数，并非节省的编码次数。如果当前没有显示图片，计数为 0 是正常的。
+本次 8 项生命周期测试／42 项断言通过。原始诊断工作区不随公开源码发布。MIT 许可证见 [LICENSE](LICENSE)。
 
-```text
-/image-cache-fix off
-/image-cache-fix on
-```
+## English
 
-`off` 立即恢复加载插件时保存的原始方法，`on` 重新安装插件的拦截方法。开关只作用于当前进程；下次加载默认启用。可在 `/settings` 中重新打开图片显示。插件本身不修改 `terminal.showImages` 设置。
+Using OMP's shared `@oh-my-pi/pi-tui` module, this extension makes `ImageBudget.shouldTransmit()` return `false` for SIXEL so the existing `Image` cache can be reused. Size, protocol, budget changes and explicit invalidation remain the host image component's responsibility. Kitty, iTerm2 and plain-text behavior is unchanged.
 
-OMP 的 `/reload` 会中止进行中的操作，因此不要在任务执行途中使用它。也可以等任务结束后退出并重新打开 OMP。
+See the [project guide](../README.md) for installation. After the current task finishes, restart OMP or run `/reload`, then inspect `/image-cache-fix status`. `off` restores the original method; `on` reinstalls the hook. Session shutdown releases it and repeated loads share one patch. Bypass counts are not encoding savings and do not prove manually verified interaction latency.
 
-## 修复范围
+The hook checks that the interface exists and is replaceable, but has no version gate and does not automatically turn off after an upstream fix. Historical integration covered 18.1.18 / 18.1.19; removed or renamed interfaces will require adaptation. `/reload` can interrupt work: wait for the task to finish. The extension never changes OMP's image-display preference itself.
 
-18.1.18 和 18.1.19 的 `Image.render()` 把 Kitty 的独立上传状态用于 SIXEL 的缓存判定。SIXEL 把完整图片序列直接放在渲染结果里，不登记 Kitty 上传状态，导致同一图片每次刷新都被重新编码。
-
-扩展通过 OMP 共享的 `@oh-my-pi/pi-tui` 模块，在 SIXEL 协议下修正 `ImageBudget.shouldTransmit()` 的返回值，使原生 `Image` 缓存生效。图片内容仍使用 OMP 原有的 SIXEL 输出；窗口尺寸、单元格尺寸、显示协议、图片数量限制变化和显式失效，仍由原组件处理。
-
-Kitty、iTerm2 和纯文本模式保持原有行为。扩展在会话关闭时恢复原方法；重复加载共享一层补丁。
-
-只要插件启用，SIXEL 的 `shouldTransmit()` 始终返回 `false`，由插件逻辑处理，不调用上游同名方法。因此，即使上游同名方法以后实现了同样修复，插件也会继续接管；手动关闭则使用那个版本自己的实现。
-
-保留的是接口检查：方法须存在且可替换。没有版本白名单，也不检测“此版本是否已经修复”。未来若上游移除或更名此接口，仍需调整接管点；移除版本限制无法保证对任意结构变化永久兼容。
-
-## 验证
-
-验证使用独立 OMP 进程和真实图片组件及原生 SIXEL 编码：修复前 20 次刷新产生 20 份新的渲染结果，修复后复用同一缓存。图片输出内容一致。这是 OMP 18.1.18 / 18.1.19 的历史集成验证记录；本公开仓库不包含原始诊断工作区。
-
-同时验证尺寸失效、图片预算降级与恢复、Kitty 上传与重传、协议切换、状态命令、开关、会话关闭与重开、任意版本标签，以及“上游已修复”的模拟实现。补丁生命周期另有 8 项单元测试。
-
-这些检查证明缓存修复在实际程序中生效；当前长会话的输入和滚动体验仍需在加载扩展并开启图片后确认。
-
-## 安装与卸载
-
-项目根目录的 `Install.ps1` 安装至当前用户的 `.omp\agent\extensions\omp-sixel-cache-fix`。`Install.ps1 -Action Uninstall` 卸载；文件被手动修改时脚本会停止，避免删除修改。安装不需要额外 npm 依赖。
-
-更新已安装版本使用 `Install.ps1 -Action Update`，会先逐文件备份并验证旧插件，再覆盖本插件的 5 个文件；失败时还原备份。普通 `Install` 遇到不同内容仍会停止。旧发布包和旧诊断记录保留原样。
+This release passed 8 lifecycle tests / 42 assertions. The original diagnostic workspace is not distributed. See [LICENSE](LICENSE) for MIT terms.

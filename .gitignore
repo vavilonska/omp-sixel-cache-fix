@@ -1,0 +1,10 @@
+
+release/
+build/
+work/
+.env
+.env.*
+*.log
+*.dmp
+*.zip
+*.sha256

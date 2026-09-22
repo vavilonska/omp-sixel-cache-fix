@@ -1,0 +1,9 @@
+{
+  "name": "omp-sixel-cache-fix",
+  "version": "1.1.0",
+  "description": "Direct SIXEL cache hook for OMP with no host version gate and reversible on/off control",
+  "type": "module",
+  "license": "MIT",
+  "omp": { "extensions": ["./index.ts"] },
+  "files": ["index.ts", "cache-patch.ts", "README.md", "LICENSE", "package.json"]
+}

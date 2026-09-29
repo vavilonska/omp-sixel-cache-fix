@@ -1,5 +1,15 @@
 # OMP SIXEL Cache Fix / 图片缓存修复
 
+**A reversible extension that corrects repeated-image cache decisions in Oh My Pi SIXEL terminals without replacing omp.exe.**
+
+修正 OMP 的 SIXEL 图片缓存判定，支持关闭恢复，无需替换 omp.exe。
+
+[快速安装](#中文) · [English setup](#english) · [Download / 下载](https://github.com/vavilonska/omp-sixel-cache-fix/releases/latest) · [MIT](LICENSE)
+
+![OMP SIXEL Cache Fix — conceptual workflow / 功能流程示意](docs/assets/overview.svg)
+
+> Host-version compatibility matters; see documented validation. / 依赖宿主接口，请先核对已验证版本。
+
 ## 中文
 
 修正 Oh My Pi 在 SIXEL 终端中重复刷新图片的缓存判定，无需替换 `omp.exe`。扩展直接接管 `ImageBudget.shouldTransmit()`；关闭时恢复宿主原方法，其他图像协议保留原行为。
@@ -35,3 +45,7 @@ After the current task finishes, restart OMP or run `/reload`, then `/image-cach
 There is no version allowlist or automatic disabling when upstream is fixed. Historical real-process integration covered OMP 18.1.18 / 18.1.19; future interface changes can still break compatibility. This release reran 8 lifecycle tests with 42 assertions, not integration tests for every current OMP version.
 
 Development check: `bun test ./tests/cache-patch.test.ts`. See [plugin details](plugin/README.md). Code is [MIT](LICENSE). Personal sessions, process dumps and diagnostic workspaces are excluded.
+
+## Related projects / 相关项目
+
+[OMPmail](https://github.com/vavilonska/OMPmail) · [OMP Pet](https://github.com/vavilonska/omp-pet) · [All projects / 全部项目](https://github.com/vavilonska#projects--项目)
